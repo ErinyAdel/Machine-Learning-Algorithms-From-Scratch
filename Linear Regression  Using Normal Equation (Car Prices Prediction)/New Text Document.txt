@@ -1,0 +1,36 @@
+'''
+import seaborn as sns
+from matplotlib import pyplot as plt
+
+# Exploratory data analysis
+plt.figure(figsize=(6, 4))
+sns.histplot(df.msrp, bins=40, color='black', alpha=1)
+plt.ylabel('Frequency')
+plt.xlabel('Price')
+plt.title('Distribution of prices')
+plt.show()
+
+plt.figure(figsize=(6, 4))
+sns.histplot(df.msrp[df.msrp < 100000], bins=40, color='black', alpha=1)
+plt.ylabel('Frequency')
+plt.xlabel('Price')
+plt.title('Distribution of prices')
+plt.show()
+
+log_price = np.log1p(df.msrp)
+plt.figure(figsize=(6, 4))
+sns.histplot(log_price, bins=40, color='black', alpha=1)
+plt.ylabel('Frequency')
+plt.xlabel('Log(Price + 1)')
+plt.title('Distribution of prices after log tranformation')
+plt.show()
+
+plt.figure(figsize=(6, 4))
+sns.histplot(y_train, label='target', color='green', alpha=0.6, bins=40)
+sns.histplot(y_pred, label='prediction', color='blue', alpha=0.8, bins=40)
+plt.legend()
+plt.xlabel('Log(Price + 1)')
+plt.ylabel('Frequency')
+plt.title('Predictions vs actual distribution')
+plt.show()
+'''
