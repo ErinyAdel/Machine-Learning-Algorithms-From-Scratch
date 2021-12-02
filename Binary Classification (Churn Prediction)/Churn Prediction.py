@@ -7,6 +7,7 @@ Created on Mon Nov 29 17:09:09 2021
 import pandas as pd
 from sklearn.metrics import mutual_info_score
 
+
 import LR_Model as model
 import numpy as np
 
@@ -20,7 +21,7 @@ df.columns = df.columns.str.lower().str.replace(' ', '_')
 
 
 ### Preprocessing
-print(df.dtypes)
+#print(df.dtypes)
 ## 
 categorical_cols = list(df.dtypes[df.dtypes == 'object'].index)
 for c in categorical_cols:
@@ -42,47 +43,69 @@ df_train_full, x_train, y_train, x_valid, y_valid, x_test, y_test = model.splitD
 
 
 
-## Exploratory Data Analysis
-#print(df.churn.value_counts(normalize=True)) # 1 (Churn): 0.26537 Churn Rate = df.churn.mean(), ... 
-global_churn_rate = round(df.churn.mean(), 2)
-
-## Replacing Missing Values By 0s
-
-## Feature Importance Mutual Information
-def calculate_mi(series):
-    return mutual_info_score(series, df_train_full.churn)
+### Exploratory Data Analysis 
+## Normalization
+#global_churn_rate = df.churn.value_counts(normalize=True).round(2) ## 1 (Churn): 0.27 Churn Rate, ...
+#global_churn_rate = df.churn.mean().round(2)  
+global_churn_rate = (df.churn.sum() / df.churn.count()).round(2)
+print(global_churn_rate)
 
 
 categorical = list(df.dtypes[df.dtypes == 'object'].index)
+del categorical[0] ## customerid
 numerical = ['tenure', 'monthlycharges', 'totalcharges']
-
-df_mi = df_train_full[categorical].apply(calculate_mi)
-df_mi = df_mi.sort_values(ascending=False).to_frame(name='MI')
-#print(df_mi)
+#print(categorical)
 
 ## Feature importance
-female_mean = df_train_full[df_train_full.gender == 'female'].churn.mean()
-print('gender == female:', round(female_mean, 3))
 
-male_mean = df_train_full[df_train_full.gender == 'male'].churn.mean()
-print('gender == male:  ', round(male_mean, 3))
+#print(df.partner.value_counts(normalize=True))
+#partner_yes = df_train_full[df_train_full.partner == 'yes'].churn.mean()
+#partner_no = df_train_full[df_train_full.partner == 'no'].churn.mean()
 
-partner_yes = df_train_full[df_train_full.partner == 'yes'].churn.mean()
-print('partner == yes:', round(partner_yes, 3))
+## Difference: Global - Group --> Low Difference ( < 0) With High Ratio --> High Importance
+#print(global_churn_rate - partner_yes)
+#print(global_churn_rate- partner_no)
+## Risk Ratio: Group / Global --> High Risk ( > 1) With High Ratio --> High Importance
+#print(partner_yes / global_churn_rate)
+#print(partner_no / global_churn_rate)
 
-partner_no = df_train_full[df_train_full.partner == 'no'].churn.mean()
-print('partner == no :', round(partner_no, 3))
+for c in categorical:
+    df_group = df_train_full.groupby(by=c).churn.agg(['count', 'mean'])
+    df_group['difference'] = df_group['mean'] - global_churn_rate
+    df_group['risk_ratio'] = df_group['mean'] / global_churn_rate
+    print( df_group, '\n')
 
-print(female_mean / global_churn_rate)
-print(male_mean / global_churn_rate)
-print(partner_yes / global_churn_rate)
-print(partner_no / global_churn_rate)
+## Feature Importance: Mutual Information --> (Tell us how important each categorical variable is).
+## The Higher MI is, The More We Learn About The Chart By Observing The Value.
+def calcMI(series): ## labels_true, labels_pred
+    return mutual_info_score(series, df_train_full.churn)
+
+df_mi = df_train_full[categorical].apply(calcMI)
+df_mi = df_mi.sort_values(ascending=False).to_frame(name='MI')
+print(df_mi, '\n')
 
 
-df_group = df_train_full.groupby(by='gender').churn.agg(['mean'])
-df_group['diff'] = df_group['mean'] - global_churn_rate
-df_group['risk'] = df_group['mean'] / global_churn_rate
-print( df_group.columns )
+## Feature Importance: Correlation --> (Tell us how important each numerical variable is).
+## Positive Correlation: ↑ A Var & ↑ Another. Negative Correlation: ↑ A Var & ↓ Another. 
+## Measures Dependency Between Two Variables --> -1 <= c <= 1
+df_cc = df_train_full[numerical].corrwith(df_train_full.churn).to_frame('correlation')       ## Know Direction
+print(df_cc, '\n')
+df_cc = df_train_full[numerical].corrwith(df_train_full.churn).abs().to_frame('correlation') ## Know Importance
+print(df_cc, '\n')
+
+#print( df_train_full.groupby(by='churn')[numerical].mean() )
+
+
+## One-hot encoding
+
+
+
+
+
+
+
+
+
 
 
 
