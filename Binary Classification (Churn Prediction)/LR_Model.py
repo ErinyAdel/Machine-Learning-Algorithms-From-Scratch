@@ -1,6 +1,5 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
-import numpy as np
 from sklearn.metrics import mutual_info_score
 
 
@@ -8,21 +7,9 @@ from sklearn.metrics import mutual_info_score
 def splitDataset(df):
     df_train_full, df_test = train_test_split(df, test_size=0.2, random_state=1)
     df_train, df_valid = train_test_split(df_train_full, test_size=0.25, random_state=11) # 20/80
-    
-    ### Splitting The Datasets To Xs, Y
-    y_train = df_train.churn.values
-    y_valid = df_valid.churn.values
-    y_test  = df_test.churn.values
-    
-    del df_train['churn']
-    del df_valid['churn']
-    del df_test['churn']
-    
-    x_train = df_train
-    x_valid = df_valid
-    x_test  = df_test
-    
-    return df_train_full, x_train, y_train, x_valid, y_valid, x_test, y_test
+            
+    return df_train, df_valid, df_test
+
 
 ###
 def preprocessFeatures(df):
@@ -41,19 +28,18 @@ def preprocessFeatures(df):
     ## Convert Y Column (Churn) From Categorical Type To Numerical Type (0, 1)
     df['churn'] = (df['churn'] == 'yes').astype(int)
     #print(df.churn)
-
     
     ## Normalization
     #global_churn_rate = df.churn.value_counts(normalize=True).round(2) ## 1 (Churn): 0.27 Churn Rate, ...
     #global_churn_rate = df.churn.mean().round(2)  
     global_churn_rate = (df.churn.sum() / df.churn.count()).round(2)
-    print(global_churn_rate)
+    #print(global_churn_rate)
     
     
     categorical = list(df.dtypes[df.dtypes == 'object'].index)
     del categorical[0] ## customerid
     numerical = ['tenure', 'monthlycharges', 'totalcharges']
-    print(categorical)
+    #print(categorical)
     
     ## Feature importance
     
@@ -113,4 +99,4 @@ def preprocessFeatures(df):
     #print(X[0])
     #print(df.iloc[0])
     
-    return X
+    return X, df['churn']
