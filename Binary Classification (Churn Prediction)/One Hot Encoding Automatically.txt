@@ -1,0 +1,5 @@
+# from sklearn.feature_extraction import DictVectorizer
+# train_dict = x_train[categorical + numerical].to_dict(orient='records')
+# dv = DictVectorizer(sparse=False)
+# d = dv.fit(train_dict)
+# X_train = dv.transform(train_dict)
