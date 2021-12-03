@@ -100,3 +100,9 @@ def preprocessFeatures(df):
     #print(df.iloc[0])
     
     return X, df['churn']
+
+def accuracy(y_pred, y_valid):
+    ## Threshold Value: 0.5 is The Best Value (Try From 0:1)
+    churn_pred_result = (y_pred >= 0.5) 
+    accuracy = (y_valid == churn_pred_result).mean()
+    return churn_pred_result, accuracy
