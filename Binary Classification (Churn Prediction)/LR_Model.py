@@ -1,6 +1,8 @@
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 import pandas as pd
+import numpy as np
 from sklearn.metrics import mutual_info_score
+from sklearn.linear_model import LogisticRegression
 
 
 ### Splittig The Dataset To Training, Validation and Testing Sets (80%, 20%, 20%)
@@ -8,7 +10,7 @@ def splitDataset(df):
     df_train_full, df_test = train_test_split(df, test_size=0.2, random_state=1)
     df_train, df_valid = train_test_split(df_train_full, test_size=0.25, random_state=11) # 20/80
             
-    return df_train, df_valid, df_test
+    return df_train_full, df_train, df_valid, df_test
 
 
 ###
@@ -101,8 +103,64 @@ def preprocessFeatures(df):
     
     return X, df['churn']
 
+def logisticRegression(X, y, C=1.0):
+    model = LogisticRegression(solver='liblinear', C=C)
+    model.fit(X, y)
+
+    #print( model.coef_[0].round(3) )      ## Weights For 1st Row
+    #print( model.intercept_[0].round(3) ) ## Bias For 1st Row
+        
+    return model
+
+
+def predict(X, model):
+    y_pred = model.predict_proba(X)[:, 1]
+
+    return y_pred
+
+def trainLogisticReg(x_train, y_train, x_valid, y_valid):
+    C = 1.0
+    n_splits = 5
+            
+    for i in range(n_splits):        
+        model    = logisticRegression(x_train, y_train, C=C)
+        y_pred   = predict(x_valid, model)
+        modelAcc = accuracy(y_pred, y_valid)
+    
+    print('Validation Accuracy:', format((modelAcc*100), '.2f'), '%\n')
+
+    df_pred = pd.DataFrame()
+    df_pred['Probability'] = y_pred
+    df_pred['Prediction']  = modelAcc.astype(int)
+    df_pred['Actual']      = y_valid.values
+    df_pred['IsCorrect']   = df_pred.Prediction == df_pred.Actual
+    print(df_pred)
+    
+    return model
+
 def accuracy(y_pred, y_valid):
     ## Threshold Value: 0.5 is The Best Value (Try From 0:1)
     churn_pred_result = (y_pred >= 0.5) 
     accuracy = (y_valid == churn_pred_result).mean()
-    return churn_pred_result, accuracy
+    return accuracy
+
+def convusionMatrix(y_test, x_valid, model):
+    '''
+        ## Confusion Matrix: TP, TN, FP, FN
+        ## Accuracy: True Positive / Total -- TP / N --> The Mean -- Afected By Class Imbalance
+        ## Precision: Fraction of Positive Predictions Are Correct -- TP / (TP + FP)
+        ## Recall:    Fraction of Correctly Identified Positive    -- TP / (TP + FN)
+    '''
+    y_pred = predict(x_valid, model)
+    
+    actual_positive = (y_test == 1)
+    actual_negative = (y_test == 0)
+    predicted_positive = (y_pred >= 0.5) 
+    predicted_negative = (y_pred < 0.5)
+    
+    tp = (predicted_positive == actual_positive).sum()
+    tn = (predicted_negative == actual_negative).sum()
+    fp = (predicted_positive != actual_positive).sum()
+    fn = (predicted_negative != actual_negative).sum()
+    
+    return tp, tn, fp, fn
