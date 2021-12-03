@@ -120,12 +120,10 @@ def predict(X, model):
 
 def trainLogisticReg(x_train, y_train, x_valid, y_valid):
     C = 1.0
-    n_splits = 5
-            
-    for i in range(n_splits):        
-        model    = logisticRegression(x_train, y_train, C=C)
-        y_pred   = predict(x_valid, model)
-        modelAcc = accuracy(y_pred, y_valid)
+       
+    model    = logisticRegression(x_train, y_train, C=C)
+    y_pred   = predict(x_valid, model)
+    modelAcc = accuracy(y_pred, y_valid)
     
     print('Validation Accuracy:', format((modelAcc*100), '.2f'), '%\n')
 

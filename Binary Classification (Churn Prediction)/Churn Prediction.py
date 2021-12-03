@@ -52,8 +52,47 @@ print('Model Faild To Classify', format((1-recall)*100, '.2f'), '% Correctly\n')
 
 
 
+### Saving The Model
+import pickle 
 
 
+with open('churn-model.bin', 'wb') as f_out: ## wb: Write in Binary File
+    pickle.dump(logRegModel, f_out)
+print("Congrats! .. The Model Saved.\n")
+
+### Loading The Model
+with open('churn-model.bin', 'rb') as f_in: ## rb: Read in Binary File
+    loadedModel = pickle.load(f_in)
+    #print(loadedModel)
+
+# customer = {
+#     'customerid': '8879-zkjof',
+#     'gender': 'female',
+#     'seniorcitizen': 0,
+#     'partner': 'no',
+#     'dependents': 'no',
+#     'tenure': 41,
+#     'phoneservice': 'yes',
+#     'multiplelines': 'no',
+#     'internetservice': 'dsl',
+#     'onlinesecurity': 'yes',
+#     'onlinebackup': 'no',
+#     'deviceprotection': 'yes',
+#     'techsupport': 'yes',
+#     'streamingtv': 'yes',
+#     'streamingmovies': 'yes',
+#     'contract': 'one_year',
+#     'paperlessbilling': 'yes',
+#     'paymentmethod': 'bank_transfer_(automatic)',
+#     'monthlycharges': 79.85,
+#     'totalcharges': 3320.75
+# }
+
+# import requests
+# url = 'http://localhost:9696/predict'
+# response = requests.post(url, json=customer)
+# result = response.json()
+# print(result)
 
 
 
