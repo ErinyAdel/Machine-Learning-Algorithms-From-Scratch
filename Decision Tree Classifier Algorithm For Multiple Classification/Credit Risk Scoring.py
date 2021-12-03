@@ -91,9 +91,9 @@ print('Validaion Accuracy:', format(auc*100, '.2f'), '%\n')
 ''' Overfitting '''
 print("Resolving Overfitting...\n")
 ## Choosing
-for m in [4, 5, 6]:
+for m in [4, 5, 6]:                            ## Depth
     print('Depth: %s' % m)
-    for s in [1, 5, 10, 15, 20, 50, 100, 200]:
+    for s in [1, 5, 10, 15, 20, 50, 100, 200]: ## Threshold
         dt = DecisionTreeClassifier(max_depth=m, min_samples_leaf=s)
         dt.fit(X_train, y_train)
         y_pred = dt.predict_proba(X_valid)[:, 1]
