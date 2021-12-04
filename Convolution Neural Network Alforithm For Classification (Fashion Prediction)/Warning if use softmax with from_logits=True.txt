@@ -1,2 +1,0 @@
-C:\Users\20122\.conda\envs\tensorflow_env\lib\site-packages\keras\backend.py:4847: 
-UserWarning: "`categorical_crossentropy` received `from_logits=True`, but the `output` argument was produced by a sigmoid or softmax activation and thus does not represent logits. Was this intended?"
