@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  3 15:18:41 2021
+Created on Sat Dec  4 08:33:11 2021
 @author: Eriny
 """
+
+''' Models Are Independently Trained --> Parallel'''
 
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.metrics import roc_auc_score
-import DT_Model as model
 
 ### Load The Data
 df = pd.read_csv('CreditScoring.csv')
@@ -76,39 +77,61 @@ dv = DictVectorizer(sparse=False)
 X_train = dv.fit_transform(df_train_dict)
 X_valid = dv.transform(df_valid_dict)
 
-### Model
-dt = DecisionTreeClassifier()
-dt.fit(X_train, y_train)
 
-y_pred = dt.predict_proba(X_train)[:, 1]
+### Model
+rf = RandomForestClassifier()
+rf.fit(X_train, y_train)
+
+y_pred = rf.predict_proba(X_train)[:, 1]
 auc = roc_auc_score(y_train, y_pred)
 print('Training Accuracy:', auc*100, '%')
 
-y_pred = dt.predict_proba(X_valid)[:, 1]
+y_pred = rf.predict_proba(X_valid)[:, 1]
 auc = roc_auc_score(y_valid, y_pred)
 print('Validaion Accuracy:', format(auc*100, '.2f'), '%\n')
 
 ''' Overfitting '''
 print("Resolving Overfitting...\n")
 ## Choosing
-for m in [4, 5, 6]:                            ## Depth
-    print('Depth: %s' % m)
-    for s in [1, 5, 10, 15, 20, 50, 100, 200]: ## Threshold
-        dt = DecisionTreeClassifier(max_depth=m, min_samples_leaf=s)
-        dt.fit(X_train, y_train)
-        y_pred = dt.predict_proba(X_valid)[:, 1]
+scores = []
+for d in [5, 10, 15]:            ## Depth Number
+    for m in range(10, 201, 10): ## Models Number
+        rf = RandomForestClassifier(n_estimators=m, max_depth=d, random_state=1) 
+        rf.fit(X_train, y_train)
+        y_pred = rf.predict_proba(X_valid)[:, 1]
         auc = roc_auc_score(y_valid, y_pred)
-        print('%s -> %.3f' % (s, auc))    
+        print('d:%s , m:%s -> %.3f' % (d, m, auc))    
+        scores.append((auc,d))
     print()
-    
-    
-decisionTree = DecisionTreeClassifier(max_depth=6, min_samples_leaf=15)
-decisionTree.fit(X_train, y_train)
+scores.sort(reverse=True)
+print( scores, '\n')       
+depth_num  = scores[0][1]
 
-y_pred = decisionTree.predict_proba(X_train)[:, 1]
+spl = []
+for s in [3, 5, 10]:
+    for m in range(10, 201, 10): ## No. of Models
+        rf = RandomForestClassifier(n_estimators=m, max_depth=depth_num, 
+                                    min_samples_leaf=s, random_state=1) 
+        rf.fit(X_train, y_train)
+        y_pred = rf.predict_proba(X_valid)[:, 1]
+        auc = roc_auc_score(y_valid, y_pred)
+        print('s:%s , m:%s -> %.3f' % (s, m, auc))    
+        spl.append((auc,m,s))
+    print()    
+spl.sort(reverse=True)
+print( spl, '\n')  
+models_num  = spl[0][1]
+samples_num = spl[0][2]
+
+
+randomForestModel = RandomForestClassifier(n_estimators=models_num, max_depth=depth_num, 
+                                           min_samples_leaf=samples_num, random_state=1) 
+randomForestModel.fit(X_train, y_train)
+
+y_pred = randomForestModel.predict_proba(X_train)[:, 1]
 auc = roc_auc_score(y_train, y_pred)
 print('Training Accuracy:', format(auc*100, '.2f'), '%')
 
-y_pred = decisionTree.predict_proba(X_valid)[:, 1]
+y_pred = randomForestModel.predict_proba(X_valid)[:, 1]
 auc = roc_auc_score(y_valid, y_pred)
 print('Validaion Accuracy:', format(auc*100, '.2f'), '%\n')
